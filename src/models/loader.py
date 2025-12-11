@@ -19,10 +19,10 @@ def load_model_interface(model_path):
         model_path = DEFAULT_CONFIG["model_path"]
     
     if not os.path.exists(model_path):
-        return f"❌ 模型路径不存在: {model_path}", False
+        return f" 模型路径不存在: {model_path}", False
     
     try:
-        log("🚀 开始加载模型...")
+        log(" 开始加载模型...")
         
         # 动态导入
         from transformers import AutoTokenizer, AutoModelForCausalLM
@@ -50,7 +50,7 @@ def load_model_interface(model_path):
         model.eval()
         
         info = f"""
-✅ 模型加载完成！
+ 模型加载完成！
 模型路径: {model_path}
 使用设备: {device}
 模型参数量: 约0.5B
@@ -58,10 +58,10 @@ Tokenizer: 已加载
         """
         
         log(info)
-        return "✅ 模型加载成功", True
+        return " 模型加载成功", True
         
     except Exception as e:
-        error_msg = f"❌ 加载模型失败: {str(e)}"
+        error_msg = f" 加载模型失败: {str(e)}"
         log(error_msg)
         return error_msg, False
 

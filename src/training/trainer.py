@@ -22,7 +22,7 @@ def generate_mbpp_training_data(mbpp_path: str, output_path: str, max_items: int
         try:
             import requests
         except ImportError:
-            log("❌ 未安装requests库，无法调用API")
+            log(" 未安装requests库，无法调用API")
             return False, "请安装requests库: pip install requests"
         
         log(f"读取MBPP数据集: {mbpp_path}")
@@ -76,15 +76,15 @@ def generate_mbpp_training_data(mbpp_path: str, output_path: str, max_items: int
                         }
                     }
                     successful_pairs.append(training_pair)
-                    log(f"[{i}] ✅ 成功生成数据对")
+                    log(f"[{i}]  成功生成数据对")
                 else:
-                    log(f"[{i}] ❌ 数据对生成失败: {validation_msg}")
+                    log(f"[{i}]  数据对生成失败: {validation_msg}")
                 
                 # 避免API调用过于频繁
                 time.sleep(0.5)
                 
             except Exception as e:
-                log(f"[{i}] ❌ 处理异常: {str(e)}")
+                log(f"[{i}]  处理异常: {str(e)}")
         
         # 保存训练数据
         if successful_pairs:
@@ -98,7 +98,7 @@ def generate_mbpp_training_data(mbpp_path: str, output_path: str, max_items: int
                         "code": pair["code"]
                     }, ensure_ascii=False) + '\n')
             
-            log(f"✅ 训练数据生成完成: {len(successful_pairs)}/{len(instructions)} 条成功")
+            log(f" 训练数据生成完成: {len(successful_pairs)}/{len(instructions)} 条成功")
             log(f"训练数据已保存到: {output_path}")
             
             return True, f"成功生成 {len(successful_pairs)} 个训练数据对"
@@ -147,15 +147,15 @@ class TrainingThread(threading.Thread):
                 )
                 
                 if not success:
-                    self.log(f"❌ 生成训练数据失败: {msg}")
+                    self.log(f" 生成训练数据失败: {msg}")
                     return
                 
-                self.log(f"✅ {msg}")
+                self.log(f" {msg}")
             else:
                 # 检查现有训练数据
                 with open(training_data_path, 'r', encoding='utf-8') as f:
                     lines = sum(1 for _ in f)
-                self.log(f"✅ 使用现有训练数据: {training_data_path}")
+                self.log(f" 使用现有训练数据: {training_data_path}")
                 self.log(f"现有训练样本数: {lines}")
             
             # 步骤2: 加载模型进行微调
@@ -209,7 +209,7 @@ class TrainingThread(threading.Thread):
                 low_cpu_mem_usage=True
             )
             
-            self.log("✅ 模型加载完成")
+            self.log(" 模型加载完成")
             
             # 加载数据集
             self.log(f"加载训练数据集: {training_data_path}")
@@ -220,13 +220,13 @@ class TrainingThread(threading.Thread):
                         if line.strip():
                             data.append(json.loads(line))
             except Exception as e:
-                self.log(f"❌ 加载数据集失败: {str(e)}")
+                self.log(f" 加载数据集失败: {str(e)}")
                 return
                 
             self.log(f"数据集大小: {len(data)} 个样本")
             
             if len(data) == 0:
-                self.log("❌ 数据集为空")
+                self.log(" 数据集为空")
                 return
                 
             # 准备训练数据
@@ -329,14 +329,14 @@ class TrainingThread(threading.Thread):
             trainer.save_model()
             tokenizer.save_pretrained(self.config['output_dir'])
             
-            self.log("🎉 训练完成！")
+            self.log(" 训练完成！")
             self.log(f"模型已保存到: {self.config['output_dir']}")
             
         except ImportError as e:
-            self.log(f"❌ 缺少依赖库: {str(e)}")
+            self.log(f" 缺少依赖库: {str(e)}")
             self.log("请运行: pip install torch transformers datasets")
         except Exception as e:
-            self.log(f"❌ 训练过程中出错: {str(e)}")
+            self.log(f" 训练过程中出错: {str(e)}")
             self.log(traceback.format_exc())
 
 def start_training_interface(config_data):
@@ -346,7 +346,7 @@ def start_training_interface(config_data):
     training_thread = None
     
     if is_training:
-        return "⚠️ 训练已经在进行中...", False
+        return " 训练已经在进行中...", False
     
     # 更新配置
     config = DEFAULT_CONFIG.copy()
@@ -356,12 +356,12 @@ def start_training_interface(config_data):
     required_fields = ["model_path", "mbpp_dataset_path", "output_dir"]
     for field in required_fields:
         if not config.get(field):
-            return f"❌ 请填写{field}", False
+            return f" 请填写{field}", False
     
     # 检查MBPP数据集
     mbpp_path = config.get("mbpp_dataset_path", DEFAULT_CONFIG["mbpp_dataset_path"])
     if not os.path.exists(mbpp_path):
-        return f"❌ MBPP数据集不存在: {mbpp_path}", False
+        return f" MBPP数据集不存在: {mbpp_path}", False
     
     # 创建输出目录
     os.makedirs(config["output_dir"], exist_ok=True)
@@ -372,7 +372,7 @@ def start_training_interface(config_data):
     training_thread.start()
     
     start_msg = f"""
-🚀 开始模型微调任务...
+ 开始模型微调任务...
 
 第一阶段: 生成训练数据
 - MBPP数据集: {config.get('mbpp_dataset_path', DEFAULT_CONFIG["mbpp_dataset_path"])}
@@ -390,7 +390,7 @@ def start_training_interface(config_data):
     """
     
     log(start_msg)
-    return "✅ 训练已开始", True
+    return " 训练已开始", True
 
 is_training = False
 training_thread = None

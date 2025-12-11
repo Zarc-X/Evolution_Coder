@@ -121,7 +121,7 @@ def call_qwen_api(api_url: str, prompt: str, model_name: str = "qwen2.5-coder-32
     try:
         import requests
     except ImportError:
-        log("❌ 未安装requests库，无法调用API")
+        log(" 未安装requests库，无法调用API")
         return False, "请安装requests库: pip install requests"
     
     headers = {
@@ -291,14 +291,14 @@ def process_single_instruction(instruction: str, index: int) -> Tuple[bool, str,
     )
     
     if not success:
-        log(f"[{index}] ❌ 代码生成失败: {code}")
+        log(f"[{index}]  代码生成失败: {code}")
         return False, "", f"代码生成失败: {code}"
     
     # 显示生成的代码预览
     code_lines = code.split('\n')
     preview_lines = min(5, len(code_lines))
     code_preview = '\n'.join(code_lines[:preview_lines])
-    log(f"[{index}] ✅ 代码生成成功")
+    log(f"[{index}]  代码生成成功")
     log(f"[{index}] 代码预览（前{preview_lines}行）:\n{code_preview}")
     log(f"[{index}] 代码总长度: {len(code)} 字符, {len(code_lines)} 行")
     
@@ -306,20 +306,20 @@ def process_single_instruction(instruction: str, index: int) -> Tuple[bool, str,
     log(f"[{index}] 进行语法检查...")
     syntax_ok, syntax_msg = check_code_syntax(code)
     if not syntax_ok:
-        log(f"[{index}] ❌ {syntax_msg}")
+        log(f"[{index}]  {syntax_msg}")
         return False, "", syntax_msg
     
-    log(f"[{index}] ✅ 语法检查通过")
+    log(f"[{index}]  语法检查通过")
     
     # 步骤3: 逻辑验证（14B模型）
     log(f"[{index}] 进行逻辑验证（14B模型）...")
     logic_ok, logic_msg = validate_code_with_14b(instruction, code)
     
     if not logic_ok:
-        log(f"[{index}] ❌ 逻辑验证失败: {logic_msg[:100]}")
+        log(f"[{index}]  逻辑验证失败: {logic_msg[:100]}")
         return False, "", f"逻辑验证失败: {logic_msg[:100]}"
     
-    log(f"[{index}] ✅ 逻辑验证通过")
+    log(f"[{index}]  逻辑验证通过")
     
     # 步骤4: 基本测试
     log(f"[{index}] 进行基本测试...")
@@ -327,12 +327,12 @@ def process_single_instruction(instruction: str, index: int) -> Tuple[bool, str,
     test_ok, test_msg = run_basic_test(code, function_name)
     
     if not test_ok:
-        log(f"[{index}] ⚠️ {test_msg} (但仍保存)")
+        log(f"[{index}]  {test_msg} (但仍保存)")
         # 基本测试失败不一定意味着代码有问题，继续处理
     else:
-        log(f"[{index}] ✅ 基本测试通过")
+        log(f"[{index}]  基本测试通过")
     
-    log(f"[{index}] ✅ 处理完成，数据对合格")
+    log(f"[{index}]  处理完成，数据对合格")
     
     return True, code, "验证通过"
 
@@ -346,7 +346,7 @@ def generate_mbpp_training_data(mbpp_path: str, output_path: str, max_items: int
         try:
             import requests
         except ImportError:
-            log("❌ 未安装requests库，无法调用API")
+            log(" 未安装requests库，无法调用API")
             return False, "请安装requests库: pip install requests"
         
         log(f"读取MBPP数据集: {mbpp_path}")
@@ -400,15 +400,15 @@ def generate_mbpp_training_data(mbpp_path: str, output_path: str, max_items: int
                         }
                     }
                     successful_pairs.append(training_pair)
-                    log(f"[{i}] ✅ 成功生成数据对")
+                    log(f"[{i}]  成功生成数据对")
                 else:
-                    log(f"[{i}] ❌ 数据对生成失败: {validation_msg}")
+                    log(f"[{i}]  数据对生成失败: {validation_msg}")
                 
                 # 避免API调用过于频繁
                 time.sleep(0.5)
                 
             except Exception as e:
-                log(f"[{i}] ❌ 处理异常: {str(e)}")
+                log(f"[{i}]  处理异常: {str(e)}")
         
         # 保存训练数据
         if successful_pairs:
@@ -422,7 +422,7 @@ def generate_mbpp_training_data(mbpp_path: str, output_path: str, max_items: int
                         "code": pair["code"]
                     }, ensure_ascii=False) + '\n')
             
-            log(f"✅ 训练数据生成完成: {len(successful_pairs)}/{len(instructions)} 条成功")
+            log(f" 训练数据生成完成: {len(successful_pairs)}/{len(instructions)} 条成功")
             log(f"训练数据已保存到: {output_path}")
             
             return True, f"成功生成 {len(successful_pairs)} 个训练数据对"
@@ -440,10 +440,10 @@ def generate_code_with_local_model(instruction: str, config: Dict) -> Tuple[str,
     global model, tokenizer, device, is_generating
     
     if model is None or tokenizer is None:
-        return "❌ 错误: 模型未加载", "请先加载模型"
+        return " 错误: 模型未加载", "请先加载模型"
     
     if is_generating:
-        return "⚠️ 正在生成中，请稍候...", ""
+        return " 正在生成中，请稍候...", ""
     
     is_generating = True
     
@@ -522,12 +522,12 @@ def generate_code_with_local_model(instruction: str, config: Dict) -> Tuple[str,
         
         generated_code = '\n'.join(cleaned_lines)
         
-        log(f"✅ 代码生成完成，长度: {len(generated_code)} 字符")
+        log(f" 代码生成完成，长度: {len(generated_code)} 字符")
         
-        return "✅ 代码生成成功", generated_code
+        return " 代码生成成功", generated_code
         
     except Exception as e:
-        error_msg = f"❌ 生成代码时出错: {str(e)}"
+        error_msg = f" 生成代码时出错: {str(e)}"
         log(error_msg)
         return error_msg, ""
         
@@ -558,11 +558,11 @@ def save_instruction_to_mbpp(instruction: str, mbpp_path: str = None):
         with open(mbpp_path, 'a', encoding='utf-8') as f:
             f.write(cleaned_instruction + '\n')
         
-        log(f"✅ 指令已保存到MBPP数据集: {cleaned_instruction[:100]}...")
+        log(f" 指令已保存到MBPP数据集: {cleaned_instruction[:100]}...")
         return True, f"指令已保存到 {mbpp_path}"
         
     except Exception as e:
-        error_msg = f"❌ 保存指令失败: {str(e)}"
+        error_msg = f" 保存指令失败: {str(e)}"
         log(error_msg)
         return False, error_msg
 
@@ -585,7 +585,7 @@ def process_instruction_with_local_model(instruction: str, temperature: float, t
             mbpp_path = DEFAULT_CONFIG["mbpp_dataset_path"]
         
         if not os.path.exists(mbpp_path):
-            error_msg = f"❌ MBPP数据集不存在: {mbpp_path}"
+            error_msg = f" MBPP数据集不存在: {mbpp_path}"
             log(error_msg)
             return error_msg, "", ""
         
@@ -597,7 +597,7 @@ def process_instruction_with_local_model(instruction: str, temperature: float, t
             lines = 0
         
         if lines == 0:
-            error_msg = f"❌ MBPP数据集为空: {mbpp_path}"
+            error_msg = f" MBPP数据集为空: {mbpp_path}"
             log(error_msg)
             return error_msg, "", ""
         
@@ -605,7 +605,7 @@ def process_instruction_with_local_model(instruction: str, temperature: float, t
         
         # 开始微调
         if is_training:
-            return "⚠️ 训练已经在进行中...", "", ""
+            return " 训练已经在进行中...", "", ""
         
         # 准备训练配置
         train_config = {
@@ -626,7 +626,7 @@ def process_instruction_with_local_model(instruction: str, temperature: float, t
         training_thread.start()
         
         status_msg = f"""
-🚀 开始自我演化（微调）...
+ 开始自我演化（微调）...
 使用指令: {lines} 条
 输出目录: {DEFAULT_CONFIG['output_dir']}
 训练轮数: {DEFAULT_CONFIG['num_epochs']}
@@ -654,9 +654,9 @@ def process_instruction_with_local_model(instruction: str, temperature: float, t
         save_success, save_msg = save_instruction_to_mbpp(instruction, mbpp_path)
         
         if save_success:
-            save_status = f"✅ 指令已保存到MBPP数据集"
+            save_status = f" 指令已保存到MBPP数据集"
         else:
-            save_status = f"⚠️ 保存指令失败: {save_msg}"
+            save_status = f" 保存指令失败: {save_msg}"
         
         return status, code, save_status
 
@@ -669,10 +669,10 @@ def load_model_interface(model_path):
         model_path = DEFAULT_CONFIG["model_path"]
     
     if not os.path.exists(model_path):
-        return f"❌ 模型路径不存在: {model_path}", False
+        return f" 模型路径不存在: {model_path}", False
     
     try:
-        log("🚀 开始加载模型...")
+        log(" 开始加载模型...")
         
         # 动态导入
         from transformers import AutoTokenizer, AutoModelForCausalLM
@@ -700,7 +700,7 @@ def load_model_interface(model_path):
         model.eval()
         
         info = f"""
-✅ 模型加载完成！
+ 模型加载完成！
 模型路径: {model_path}
 使用设备: {device}
 模型参数量: 约0.5B
@@ -708,10 +708,10 @@ Tokenizer: 已加载
         """
         
         log(info)
-        return "✅ 模型加载成功", True
+        return " 模型加载成功", True
         
     except Exception as e:
-        error_msg = f"❌ 加载模型失败: {str(e)}"
+        error_msg = f" 加载模型失败: {str(e)}"
         log(error_msg)
         return error_msg, False
 
@@ -755,15 +755,15 @@ class TrainingThread(threading.Thread):
                 )
                 
                 if not success:
-                    self.log(f"❌ 生成训练数据失败: {msg}")
+                    self.log(f" 生成训练数据失败: {msg}")
                     return
                 
-                self.log(f"✅ {msg}")
+                self.log(f" {msg}")
             else:
                 # 检查现有训练数据
                 with open(training_data_path, 'r', encoding='utf-8') as f:
                     lines = sum(1 for _ in f)
-                self.log(f"✅ 使用现有训练数据: {training_data_path}")
+                self.log(f" 使用现有训练数据: {training_data_path}")
                 self.log(f"现有训练样本数: {lines}")
             
             # 步骤2: 加载模型进行微调
@@ -818,7 +818,7 @@ class TrainingThread(threading.Thread):
                 low_cpu_mem_usage=True
             )
             
-            self.log("✅ 模型加载完成")
+            self.log(" 模型加载完成")
             
             # 加载数据集
             self.log(f"加载训练数据集: {training_data_path}")
@@ -829,13 +829,13 @@ class TrainingThread(threading.Thread):
                         if line.strip():
                             data.append(json.loads(line))
             except Exception as e:
-                self.log(f"❌ 加载数据集失败: {str(e)}")
+                self.log(f" 加载数据集失败: {str(e)}")
                 return
                 
             self.log(f"数据集大小: {len(data)} 个样本")
             
             if len(data) == 0:
-                self.log("❌ 数据集为空")
+                self.log(" 数据集为空")
                 return
                 
             # 准备训练数据
@@ -938,14 +938,14 @@ class TrainingThread(threading.Thread):
             trainer.save_model()
             tokenizer.save_pretrained(self.config['output_dir'])
             
-            self.log("🎉 训练完成！")
+            self.log(" 训练完成！")
             self.log(f"模型已保存到: {self.config['output_dir']}")
             
         except ImportError as e:
-            self.log(f"❌ 缺少依赖库: {str(e)}")
+            self.log(f" 缺少依赖库: {str(e)}")
             self.log("请运行: pip install torch transformers datasets")
         except Exception as e:
-            self.log(f"❌ 训练过程中出错: {str(e)}")
+            self.log(f" 训练过程中出错: {str(e)}")
             import traceback
             self.log(traceback.format_exc())
         finally:
@@ -957,7 +957,7 @@ def start_training_interface(config_data):
     global is_training, training_thread
     
     if is_training:
-        return "⚠️ 训练已经在进行中...", False
+        return " 训练已经在进行中...", False
     
     # 更新配置
     config = DEFAULT_CONFIG.copy()
@@ -967,12 +967,12 @@ def start_training_interface(config_data):
     required_fields = ["model_path", "mbpp_dataset_path", "output_dir"]
     for field in required_fields:
         if not config.get(field):
-            return f"❌ 请填写{field}", False
+            return f" 请填写{field}", False
     
     # 检查MBPP数据集
     mbpp_path = config.get("mbpp_dataset_path", DEFAULT_CONFIG["mbpp_dataset_path"])
     if not os.path.exists(mbpp_path):
-        return f"❌ MBPP数据集不存在: {mbpp_path}", False
+        return f" MBPP数据集不存在: {mbpp_path}", False
     
     # 创建输出目录
     os.makedirs(config["output_dir"], exist_ok=True)
@@ -983,7 +983,7 @@ def start_training_interface(config_data):
     training_thread.start()
     
     start_msg = f"""
-🚀 开始模型微调任务...
+ 开始模型微调任务...
 
 第一阶段: 生成训练数据
 - MBPP数据集: {config.get('mbpp_dataset_path', DEFAULT_CONFIG["mbpp_dataset_path"])}
@@ -1001,7 +1001,7 @@ def start_training_interface(config_data):
     """
     
     log(start_msg)
-    return "✅ 训练已开始", True
+    return " 训练已开始", True
 
 # ====== 模型评估模块 ======
 class EvaluationThread(threading.Thread):
@@ -1041,15 +1041,15 @@ class EvaluationThread(threading.Thread):
         dataset_path = self.config["human_eval_path"]
         
         if not os.path.exists(original_path):
-            self.log(f"❌ 原始模型路径不存在: {original_path}")
+            self.log(f" 原始模型路径不存在: {original_path}")
             return
             
         if not os.path.exists(finetuned_path):
-            self.log(f"❌ 微调模型路径不存在: {finetuned_path}")
+            self.log(f" 微调模型路径不存在: {finetuned_path}")
             return
             
         if not os.path.exists(dataset_path):
-            self.log(f"❌ HumanEval数据集不存在: {dataset_path}")
+            self.log(f" HumanEval数据集不存在: {dataset_path}")
             self.log("请从 https://github.com/openai/human-eval 下载数据集")
             return
         
@@ -1110,7 +1110,7 @@ class EvaluationThread(threading.Thread):
                 
             self.log(f"评估结果已保存到: {result_file}")
             
-        self.log("🎉 模型评估全部完成！")
+        self.log(" 模型评估全部完成！")
         
     def evaluate_single_model(self, model_path, model_name, base_model_path=None):
         """评估单个模型"""
@@ -1152,7 +1152,7 @@ class EvaluationThread(threading.Thread):
                     )
                     
                 except ImportError:
-                    self.log("❌ 未安装peft库，无法加载LoRA模型")
+                    self.log(" 未安装peft库，无法加载LoRA模型")
                     self.log("请运行: pip install peft")
                     return None
             else:
@@ -1433,7 +1433,7 @@ def start_evaluation_interface(config_data):
     global is_evaluating, evaluation_thread
     
     if is_evaluating:
-        return "⚠️ 评估已经在进行中...", False
+        return " 评估已经在进行中...", False
     
     # 更新配置
     config = DEFAULT_CONFIG.copy()
@@ -1443,13 +1443,13 @@ def start_evaluation_interface(config_data):
     required_fields = ["model_path", "finetuned_model_path", "human_eval_path"]
     for field in required_fields:
         if not config.get(field):
-            return f"❌ 请填写{field}", False
+            return f" 请填写{field}", False
     
     # 检查路径
     for path_field in ["model_path", "finetuned_model_path", "human_eval_path"]:
         path = config[path_field]
         if not os.path.exists(path):
-            return f"❌ 路径不存在: {path}", False
+            return f" 路径不存在: {path}", False
     
     # 清空日志
     log_collector.clear()
@@ -1505,11 +1505,11 @@ def get_comparison_results():
             result_text += f"  示例: {', '.join(comparison_results['newly_failed_tasks'][:5])}\n"
     
     if comparison_results['improvement'] > 0:
-        result_text += "\n🎉 **微调效果: 提升明显**"
+        result_text += "\n **微调效果: 提升明显**"
     elif comparison_results['improvement'] == 0:
-        result_text += "\n⚠️ **微调效果: 无明显变化**"
+        result_text += "\n **微调效果: 无明显变化**"
     else:
-        result_text += "\n❌ **微调效果: 性能下降**"
+        result_text += "\n **微调效果: 性能下降**"
     
     return result_text
 
@@ -1520,21 +1520,21 @@ def check_paths(model_path, finetuned_model_path, human_eval_path):
     
     # 检查原始模型
     if os.path.exists(model_path):
-        results.append(f"✅ 原始模型路径存在: {model_path}")
+        results.append(f" 原始模型路径存在: {model_path}")
     else:
-        results.append(f"❌ 原始模型路径不存在: {model_path}")
+        results.append(f" 原始模型路径不存在: {model_path}")
     
     # 检查微调模型
     if os.path.exists(finetuned_model_path):
-        results.append(f"✅ 微调模型路径存在: {finetuned_model_path}")
+        results.append(f" 微调模型路径存在: {finetuned_model_path}")
     else:
-        results.append(f"❌ 微调模型路径不存在: {finetuned_model_path}")
+        results.append(f" 微调模型路径不存在: {finetuned_model_path}")
     
     # 检查数据集
     if os.path.exists(human_eval_path):
-        results.append(f"✅ HumanEval数据集存在: {human_eval_path}")
+        results.append(f" HumanEval数据集存在: {human_eval_path}")
     else:
-        results.append(f"❌ HumanEval数据集不存在: {human_eval_path}")
+        results.append(f" HumanEval数据集不存在: {human_eval_path}")
         results.append("请从 https://github.com/openai/human-eval 下载数据集")
     
     return "\n".join(results)
@@ -1577,7 +1577,7 @@ def generate_example_dataset(instructions):
         for item in dataset:
             f.write(json.dumps(item, ensure_ascii=False) + '\n')
     
-    return f"✅ 示例数据集已生成: {output_path}\n共 {len(dataset)} 个样本"
+    return f" 示例数据集已生成: {output_path}\n共 {len(dataset)} 个样本"
 
 def update_system_info():
     """更新系统信息"""
@@ -1585,14 +1585,14 @@ def update_system_info():
     if torch.cuda.is_available():
         gpu_name = torch.cuda.get_device_name(0)
         gpu_memory = torch.cuda.get_device_properties(0).total_memory / 1e9
-        gpu_text = f"✅ GPU可用\n名称: {gpu_name}\n显存: {gpu_memory:.1f} GB"
+        gpu_text = f" GPU可用\n名称: {gpu_name}\n显存: {gpu_memory:.1f} GB"
     else:
-        gpu_text = "❌ 未检测到GPU\n将在CPU上运行，速度较慢"
+        gpu_text = " 未检测到GPU\n将在CPU上运行，速度较慢"
     
-    model_text = "❌ 模型未加载"
+    model_text = " 模型未加载"
     global model
     if model is not None:
-        model_text = "✅ 模型已加载\n可使用生成和微调功能"
+        model_text = " 模型已加载\n可使用生成和微调功能"
     
     return gpu_text, model_text
 
@@ -1603,7 +1603,7 @@ def update_logs():
 
 # ====== 创建完整的Gradio界面 ======
 with gr.Blocks(title="Qwen2.5-Coder 完整系统", theme=gr.themes.Soft()) as demo:
-    gr.Markdown("# 🤖 Qwen2.5-Coder 完整系统")
+    gr.Markdown("#  Qwen2.5-Coder 完整系统")
     gr.Markdown("模型加载、微调、评估一体化系统")
     
     # 添加一个隐藏的状态组件来存储训练配置
@@ -1658,10 +1658,10 @@ with gr.Blocks(title="Qwen2.5-Coder 完整系统", theme=gr.themes.Soft()) as de
     # 选项卡
     with gr.Tabs():
         # ====== Tab 1: 模型加载 ======
-        with gr.TabItem("🚀 模型加载"):
+        with gr.TabItem(" 模型加载"):
             with gr.Row():
                 with gr.Column(scale=1):
-                    gr.Markdown("### ⚙️ 模型配置")
+                    gr.Markdown("###  模型配置")
                     
                     model_path = gr.Textbox(
                         label="模型路径",
@@ -1671,7 +1671,7 @@ with gr.Blocks(title="Qwen2.5-Coder 完整系统", theme=gr.themes.Soft()) as de
                     )
                     
                     load_btn = gr.Button(
-                        "🚀 加载模型",
+                        " 加载模型",
                         variant="primary",
                         size="lg"
                     )
@@ -1683,7 +1683,7 @@ with gr.Blocks(title="Qwen2.5-Coder 完整系统", theme=gr.themes.Soft()) as de
                         lines=3
                     )
                     
-                    gr.Markdown("### 📊 系统信息")
+                    gr.Markdown("###  系统信息")
                     
                     with gr.Accordion("设备信息", open=True):
                         gr.Markdown("""
@@ -1694,7 +1694,7 @@ with gr.Blocks(title="Qwen2.5-Coder 完整系统", theme=gr.themes.Soft()) as de
                         """)
                 
                 with gr.Column(scale=2):
-                    gr.Markdown("### 📝 加载说明")
+                    gr.Markdown("###  加载说明")
                     
                     with gr.Accordion("详细说明", open=True):
                         gr.Markdown("""
@@ -1731,10 +1731,10 @@ with gr.Blocks(title="Qwen2.5-Coder 完整系统", theme=gr.themes.Soft()) as de
                         """)
         
         # ====== Tab 2: 模型微调（已修改为使用MBPP） ======
-        with gr.TabItem("🎯 模型微调"):
+        with gr.TabItem(" 模型微调"):
             with gr.Row():
                 with gr.Column(scale=1):
-                    gr.Markdown("### ⚙️ 训练配置")
+                    gr.Markdown("###  训练配置")
                     
                     mbpp_dataset_path = gr.Textbox(
                         label="MBPP数据集路径",
@@ -1795,7 +1795,7 @@ with gr.Blocks(title="Qwen2.5-Coder 完整系统", theme=gr.themes.Soft()) as de
                         )
                     
                     train_btn = gr.Button(
-                        "🎯 开始微调",
+                        " 开始微调",
                         variant="stop",
                         size="lg"
                     )
@@ -1808,7 +1808,7 @@ with gr.Blocks(title="Qwen2.5-Coder 完整系统", theme=gr.themes.Soft()) as de
                     )
                     
                     gr.Markdown("---")
-                    gr.Markdown("### 🛠️ 工具")
+                    gr.Markdown("###  工具")
                     
                     with gr.Accordion("检查MBPP数据集", open=False):
                         check_mbpp_btn = gr.Button("检查MBPP数据集", variant="secondary")
@@ -1825,7 +1825,7 @@ with gr.Blocks(title="Qwen2.5-Coder 完整系统", theme=gr.themes.Soft()) as de
                         generate_output = gr.Textbox(label="生成结果", interactive=False)
                 
                 with gr.Column(scale=2):
-                    gr.Markdown("### 📝 微调说明")
+                    gr.Markdown("###  微调说明")
                     
                     with gr.Accordion("详细说明", open=True):
                         gr.Markdown("""
@@ -1871,10 +1871,10 @@ with gr.Blocks(title="Qwen2.5-Coder 完整系统", theme=gr.themes.Soft()) as de
                         """)
         
         # ====== Tab 3: 模型评估 ======
-        with gr.TabItem("📊 模型评估"):
+        with gr.TabItem(" 模型评估"):
             with gr.Row():
                 with gr.Column(scale=1):
-                    gr.Markdown("### ⚙️ 评估配置")
+                    gr.Markdown("###  评估配置")
                     
                     finetuned_model_path = gr.Textbox(
                         label="微调模型路径",
@@ -1926,7 +1926,7 @@ with gr.Blocks(title="Qwen2.5-Coder 完整系统", theme=gr.themes.Soft()) as de
                         )
                     
                     eval_btn = gr.Button(
-                        "🚀 开始评估",
+                        " 开始评估",
                         variant="primary",
                         size="lg"
                     )
@@ -1939,10 +1939,10 @@ with gr.Blocks(title="Qwen2.5-Coder 完整系统", theme=gr.themes.Soft()) as de
                     )
                     
                     gr.Markdown("---")
-                    gr.Markdown("### 📈 评估结果")
+                    gr.Markdown("###  评估结果")
                     
                     results_btn = gr.Button(
-                        "📊 查看结果",
+                        " 查看结果",
                         variant="secondary",
                         size="lg"
                     )
@@ -1951,7 +1951,7 @@ with gr.Blocks(title="Qwen2.5-Coder 完整系统", theme=gr.themes.Soft()) as de
                     check_output = gr.Textbox(label="路径检查结果", interactive=False, lines=5)
                 
                 with gr.Column(scale=2):
-                    gr.Markdown("### 📝 评估说明")
+                    gr.Markdown("###  评估说明")
                     
                     with gr.Accordion("详细说明", open=True):
                         gr.Markdown("""
@@ -2001,10 +2001,10 @@ with gr.Blocks(title="Qwen2.5-Coder 完整系统", theme=gr.themes.Soft()) as de
                         """)
         
         # ====== Tab 4: 大模型问答（新增） ======
-        with gr.TabItem("💬 大模型问答"):
+        with gr.TabItem(" 大模型问答"):
             with gr.Row():
                 with gr.Column(scale=1):
-                    gr.Markdown("### 💬 模型问答")
+                    gr.Markdown("###  模型问答")
                     
                     with gr.Row():
                         instruction_input = gr.Textbox(
@@ -2016,7 +2016,7 @@ with gr.Blocks(title="Qwen2.5-Coder 完整系统", theme=gr.themes.Soft()) as de
                         )
                         
                         start_qa_btn = gr.Button(
-                            "🚀 开始",
+                            " 开始",
                             variant="primary",
                             size="lg",
                             scale=1
@@ -2080,7 +2080,7 @@ with gr.Blocks(title="Qwen2.5-Coder 完整系统", theme=gr.themes.Soft()) as de
                         example_instr4 = gr.Button("特殊指令: 自我演化", variant="stop", size="sm")
                 
                 with gr.Column(scale=2):
-                    gr.Markdown("### 📝 使用说明")
+                    gr.Markdown("###  使用说明")
                     
                     with gr.Accordion("详细说明", open=True):
                         gr.Markdown("""
@@ -2187,7 +2187,7 @@ with gr.Blocks(title="Qwen2.5-Coder 完整系统", theme=gr.themes.Soft()) as de
     # 检查MBPP数据集
     def check_mbpp_dataset(mbpp_path):
         if not os.path.exists(mbpp_path):
-            return f"❌ MBPP数据集不存在: {mbpp_path}"
+            return f" MBPP数据集不存在: {mbpp_path}"
         
         # 读取样本数量
         try:
@@ -2202,9 +2202,9 @@ with gr.Blocks(title="Qwen2.5-Coder 完整系统", theme=gr.themes.Soft()) as de
                 first_line = f.readline().strip()
                 example = first_line[:100] + "..." if len(first_line) > 100 else first_line
             
-            return f"✅ MBPP数据集检查通过\n样本数量: {count}\n示例: {example}"
+            return f" MBPP数据集检查通过\n样本数量: {count}\n示例: {example}"
         except Exception as e:
-            return f"❌ 读取MBPP数据集失败: {str(e)}"
+            return f" 读取MBPP数据集失败: {str(e)}"
     
     check_mbpp_btn.click(
         fn=check_mbpp_dataset,
@@ -2272,10 +2272,10 @@ with gr.Blocks(title="Qwen2.5-Coder 完整系统", theme=gr.themes.Soft()) as de
         # 检查模型是否加载
         global model
         if model is None:
-            return "❌ 模型未加载", "", "请先加载模型", "模型未加载"
+            return " 模型未加载", "", "请先加载模型", "模型未加载"
         
         if not instruction or instruction.strip() == "":
-            return "❌ 请输入指令", "", "", "输入为空"
+            return " 请输入指令", "", "", "输入为空"
         
         # 使用问答函数处理指令
         qa_status, code, save_status = process_instruction_with_local_model(
@@ -2369,7 +2369,7 @@ if __name__ == "__main__":
             missing_packages.append(package)
     
     if missing_packages:
-        print("❌ 缺少必要的依赖库:")
+        print(" 缺少必要的依赖库:")
         for package in missing_packages:
             print(f"  - {package}")
         print("\n请运行以下命令安装:")
@@ -2387,23 +2387,23 @@ if __name__ == "__main__":
     # 检查MBPP数据集
     mbpp_path = DEFAULT_CONFIG["mbpp_dataset_path"]
     if not os.path.exists(mbpp_path):
-        print(f"⚠️ 警告: MBPP数据集不存在: {mbpp_path}")
+        print(f" 警告: MBPP数据集不存在: {mbpp_path}")
         print("将创建新的MBPP数据集文件")
         with open(mbpp_path, 'w', encoding='utf-8') as f:
             f.write('"Write a function to add two numbers and return the sum"\n')
             f.write('"Write a function to check if a number is prime"\n')
             f.write('"Write a function to generate the first n Fibonacci numbers"\n')
-        print(f"✅ 已创建示例MBPP数据集: {mbpp_path}")
+        print(f" 已创建示例MBPP数据集: {mbpp_path}")
     
     # 检查HumanEval数据集
     if not os.path.exists(DEFAULT_CONFIG["human_eval_path"]):
-        print(f"⚠️ 警告: HumanEval数据集不存在: {DEFAULT_CONFIG['human_eval_path']}")
+        print(f" 警告: HumanEval数据集不存在: {DEFAULT_CONFIG['human_eval_path']}")
         print("请从以下地址下载:")
         print("https://github.com/openai/human-eval")
         print("下载后保存到 ./datasets/ 目录")
     
     # 启动界面
-    print("🚀 启动 Qwen2.5-Coder 完整系统...")
+    print(" 启动 Qwen2.5-Coder 完整系统...")
     print(f"访问地址: http://localhost:7860")
     print("按 Ctrl+C 停止服务")
     
@@ -2415,4 +2415,4 @@ if __name__ == "__main__":
             show_api=False
         )
     except KeyboardInterrupt:
-        print("\n👋 服务已停止")
+        print("\n 服务已停止")

@@ -53,15 +53,15 @@ class EvaluationThread(threading.Thread):
         dataset_path = self.config["human_eval_path"]
         
         if not os.path.exists(original_path):
-            self.log(f"❌ 原始模型路径不存在: {original_path}")
+            self.log(f" 原始模型路径不存在: {original_path}")
             return
             
         if not os.path.exists(finetuned_path):
-            self.log(f"❌ 微调模型路径不存在: {finetuned_path}")
+            self.log(f" 微调模型路径不存在: {finetuned_path}")
             return
             
         if not os.path.exists(dataset_path):
-            self.log(f"❌ HumanEval数据集不存在: {dataset_path}")
+            self.log(f" HumanEval数据集不存在: {dataset_path}")
             self.log("请从 https://github.com/openai/human-eval 下载数据集")
             return
         
@@ -163,7 +163,7 @@ class EvaluationThread(threading.Thread):
                     model = PeftModel.from_pretrained(model, model_path)
                     
                 except ImportError:
-                    self.log("❌ 未安装peft库，无法加载LoRA adapter")
+                    self.log(" 未安装peft库，无法加载LoRA adapter")
                     return None
                     
             else:
@@ -404,7 +404,7 @@ def start_evaluation_interface(config_data):
     global is_evaluating, evaluation_thread
     
     if is_evaluating:
-        return "⚠️ 评估已经在进行中...", False
+        return " 评估已经在进行中...", False
     
     # 更新配置
     config = DEFAULT_CONFIG.copy()
@@ -414,13 +414,13 @@ def start_evaluation_interface(config_data):
     required_fields = ["model_path", "finetuned_model_path", "human_eval_path"]
     for field in required_fields:
         if not config.get(field):
-            return f"❌ 请填写{field}", False
+            return f" 请填写{field}", False
     
     # 检查路径
     for path_field in ["model_path", "finetuned_model_path", "human_eval_path"]:
         path = config[path_field]
         if not os.path.exists(path):
-            return f"❌ 路径不存在: {path}", False
+            return f" 路径不存在: {path}", False
     
     # 开始评估线程
     evaluation_thread = EvaluationThread(config, log)
@@ -428,7 +428,7 @@ def start_evaluation_interface(config_data):
     evaluation_thread.start()
     
     start_msg = f"""
-🚀 开始模型对比评估...
+ 开始模型对比评估...
 原始模型: {config['model_path']}
 微调模型: {config['finetuned_model_path']}
 数据集: {config['human_eval_path']}
@@ -438,7 +438,7 @@ def start_evaluation_interface(config_data):
     """
     
     log(start_msg)
-    return "✅ 评估已开始", True
+    return " 评估已开始", True
 
 def get_comparison_results():
     """获取对比结果"""
@@ -473,11 +473,11 @@ def get_comparison_results():
             result_text += f"  示例: {', '.join(comparison_results['newly_failed_tasks'][:5])}\n"
     
     if comparison_results['improvement'] > 0:
-        result_text += "\n🎉 **微调效果: 提升明显**"
+        result_text += "\n **微调效果: 提升明显**"
     elif comparison_results['improvement'] == 0:
-        result_text += "\n⚠️ **微调效果: 无明显变化**"
+        result_text += "\n **微调效果: 无明显变化**"
     else:
-        result_text += "\n❌ **微调效果: 性能下降**"
+        result_text += "\n **微调效果: 性能下降**"
     
     return result_text
 
