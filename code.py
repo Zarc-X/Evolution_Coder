@@ -2016,7 +2016,7 @@ with gr.Blocks(title="Qwen2.5-Coder 完整系统", theme=gr.themes.Soft()) as de
                         )
                         
                         start_qa_btn = gr.Button(
-                            "🚀 开始",
+                            " 开始",
                             variant="primary",
                             size="lg",
                             scale=1
