@@ -7,7 +7,9 @@ __pycache__/
 .vscode/
 
 # 模型文件
-models/
+/models/*
+!/src/
+!/src/models/
 
 # 微调后模型
 *finetuned/
