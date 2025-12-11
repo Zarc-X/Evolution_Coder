@@ -16,9 +16,9 @@ def create_interface():
     """创建Gradio界面"""
     
     # ====== 创建完整的Gradio界面 ======
-    with gr.Blocks(title="Qwen2.5-Coder 完整系统", theme=gr.themes.Soft()) as demo:
-        gr.Markdown("# 🤖 Qwen2.5-Coder 完整系统")
-        gr.Markdown("模型加载、微调、评估一体化系统")
+    with gr.Blocks(title="Qwen2.5-Coder 自演化系统", theme=gr.themes.Soft()) as demo:
+        gr.Markdown("#  Qwen2.5-Coder 自演化系统")
+        gr.Markdown("模型加载、微调、自演化、评估一体化系统")
         
         # 添加一个隐藏的状态组件来存储训练配置
         training_config_state = gr.State({})
@@ -72,7 +72,7 @@ def create_interface():
         # 选项卡
         with gr.Tabs():
             # ====== Tab 1: 模型加载 ======
-            with gr.TabItem("🚀 模型加载"):
+            with gr.TabItem(" 模型加载"):
                 with gr.Row():
                     with gr.Column(scale=1):
                         model_path = gr.Textbox(
@@ -99,7 +99,7 @@ def create_interface():
                         """)
             
             # ====== Tab 2: 模型微调（已修改为使用MBPP） ======
-            with gr.TabItem("🎯 模型微调"):
+            with gr.TabItem(" 模型微调"):
                 with gr.Row():
                     with gr.Column(scale=1):
                         mbpp_dataset_path = gr.Textbox(
@@ -179,7 +179,7 @@ def create_interface():
                         generate_output = gr.Textbox(label="生成结果", interactive=False, lines=2)
             
             # ====== Tab 3: 模型评估 ======
-            with gr.TabItem("📊 模型评估"):
+            with gr.TabItem(" 模型评估"):
                 with gr.Row():
                     with gr.Column(scale=1):
                         finetuned_model_path = gr.Textbox(
@@ -258,7 +258,7 @@ git clone https://github.com/openai/human-eval.git
                         results_btn = gr.Button("查看结果")
             
             # ====== Tab 4: 大模型问答（新增） ======
-            with gr.TabItem("💬 大模型问答"):
+            with gr.TabItem(" 大模型问答"):
                 with gr.Row():
                     with gr.Column(scale=1):
                         instruction_input = gr.Textbox(
@@ -376,7 +376,7 @@ git clone https://github.com/openai/human-eval.git
         # 检查MBPP数据集
         def check_mbpp_dataset(mbpp_path):
             if not os.path.exists(mbpp_path):
-                return f"❌ MBPP数据集不存在: {mbpp_path}"
+                return f" MBPP数据集不存在: {mbpp_path}"
             
             # 读取样本数量
             try:
@@ -391,9 +391,9 @@ git clone https://github.com/openai/human-eval.git
                     first_line = f.readline().strip()
                     example = first_line[:100] + "..." if len(first_line) > 100 else first_line
                 
-                return f"✅ MBPP数据集检查通过\n样本数量: {count}\n示例: {example}"
+                return f" MBPP数据集检查通过\n样本数量: {count}\n示例: {example}"
             except Exception as e:
-                return f"❌ 读取MBPP数据集失败: {str(e)}"
+                return f" 读取MBPP数据集失败: {str(e)}"
         
         check_mbpp_btn.click(
             fn=check_mbpp_dataset,
@@ -439,7 +439,7 @@ git clone https://github.com/openai/human-eval.git
                 for item in dataset:
                     f.write(json.dumps(item, ensure_ascii=False) + '\n')
             
-            return f"✅ 示例数据集已生成: {output_path}\n共 {len(dataset)} 个样本"
+            return f" 示例数据集已生成: {output_path}\n共 {len(dataset)} 个样本"
         
         generate_btn.click(
             fn=generate_example_dataset,
@@ -497,21 +497,21 @@ git clone https://github.com/openai/human-eval.git
             
             # 检查原始模型
             if os.path.exists(model_path_val):
-                results.append(f"✅ 原始模型路径存在: {model_path_val}")
+                results.append(f" 原始模型路径存在: {model_path_val}")
             else:
-                results.append(f"❌ 原始模型路径不存在: {model_path_val}")
+                results.append(f" 原始模型路径不存在: {model_path_val}")
             
             # 检查微调模型
             if os.path.exists(finetuned_model_path_val):
-                results.append(f"✅ 微调模型路径存在: {finetuned_model_path_val}")
+                results.append(f" 微调模型路径存在: {finetuned_model_path_val}")
             else:
-                results.append(f"❌ 微调模型路径不存在: {finetuned_model_path_val}")
+                results.append(f" 微调模型路径不存在: {finetuned_model_path_val}")
             
             # 检查数据集
             if os.path.exists(human_eval_path_val):
-                results.append(f"✅ HumanEval数据集存在: {human_eval_path_val}")
+                results.append(f" HumanEval数据集存在: {human_eval_path_val}")
             else:
-                results.append(f"❌ HumanEval数据集不存在: {human_eval_path_val}")
+                results.append(f" HumanEval数据集不存在: {human_eval_path_val}")
                 results.append("请从 https://github.com/openai/human-eval 下载数据集")
             
             return "\n".join(results)
@@ -528,10 +528,10 @@ git clone https://github.com/openai/human-eval.git
             from ..models import is_model_loaded
             
             if not is_model_loaded():
-                return "❌ 模型未加载", "", "请先加载模型", "模型未加载"
+                return " 模型未加载", "", "请先加载模型", "模型未加载"
             
             if not instruction or instruction.strip() == "":
-                return "❌ 请输入指令", "", "", "输入为空"
+                return " 请输入指令", "", "", "输入为空"
             
             # 使用问答函数处理指令
             qa_status, code, save_status = process_instruction_with_local_model(
@@ -614,13 +614,13 @@ def update_system_info():
     if torch.cuda.is_available():
         gpu_name = torch.cuda.get_device_name(0)
         gpu_memory = torch.cuda.get_device_properties(0).total_memory / 1e9
-        gpu_text = f"✅ GPU可用\n名称: {gpu_name}\n显存: {gpu_memory:.1f} GB"
+        gpu_text = f" GPU可用\n名称: {gpu_name}\n显存: {gpu_memory:.1f} GB"
     else:
-        gpu_text = "❌ 未检测到GPU\n将在CPU上运行，速度较慢"
+        gpu_text = " 未检测到GPU\n将在CPU上运行，速度较慢"
     
-    model_text = "❌ 模型未加载"
+    model_text = " 模型未加载"
     model, _, _ = get_model()
     if model is not None:
-        model_text = "✅ 模型已加载\n可使用生成和微调功能"
+        model_text = " 模型已加载\n可使用生成和微调功能"
     
     return gpu_text, model_text
