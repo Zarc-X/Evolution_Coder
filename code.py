@@ -1,5 +1,5 @@
 """
-完整的 Qwen2.5-Coder 模型微调与评估系统
+完整的 Qwen2.5-Coder 模型演进与评估系统
 整合模型加载、微调、评估三大功能
 新增：直接大模型问答功能
 """
@@ -42,7 +42,7 @@ evaluation_thread = None
 # 结果存储
 comparison_results = {}
 
-# ====== API配置（从generate_mbpp_dataset.py复制） ======
+# ====== API配置 ======
 API_CONFIG = {
     "qwen_32b_api_url": "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions",
     "qwen_14b_api_url": "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions",
@@ -57,7 +57,7 @@ DEFAULT_CONFIG = {
     "human_eval_path": "./datasets/human-eval-v2-20210705.jsonl",
     
     # 训练配置
-    "mbpp_dataset_path": "./datasets/mbpp_text_only.jsonl",  # MBPP原始数据集路径
+    "dataset_path": "./datasets/mbpp_text_only.jsonl",  # 原始数据集路径
     "training_dataset_path": "./mbpp_training_data/mbpp_training_dataset.jsonl",  # 处理后训练集路径
     "output_dir": "./qwen2.5-coder-0.5b-finetuned",
     "num_epochs": 3,
@@ -110,7 +110,7 @@ def log(message):
     log_collector.add_log(message)
     print(f"[{datetime.now().strftime('%H:%M:%S')}] {message}")
 
-# ====== 从generate_mbpp_dataset.py复制的函数 ======
+# ====== 从generate_dataset.py复制的函数 ======
 def call_qwen_api(api_url: str, prompt: str, model_name: str = "qwen2.5-coder-32b-instruct", 
                   max_tokens: int = 1024, temperature: float = 0.7, 
                   retries: int = 3) -> Tuple[bool, str]:
@@ -339,7 +339,7 @@ def process_single_instruction(instruction: str, index: int) -> Tuple[bool, str,
 def generate_mbpp_training_data(mbpp_path: str, output_path: str, max_items: int = 50, 
                               start_index: int = 0) -> Tuple[bool, str]:
     """
-    生成MBPP训练数据
+    生成训练数据
     """
     try:
         # 导入requests（延迟导入以避免依赖问题）
@@ -349,9 +349,9 @@ def generate_mbpp_training_data(mbpp_path: str, output_path: str, max_items: int
             log(" 未安装requests库，无法调用API")
             return False, "请安装requests库: pip install requests"
         
-        log(f"读取MBPP数据集: {mbpp_path}")
+        log(f"读取数据集: {mbpp_path}")
         if not os.path.exists(mbpp_path):
-            return False, f"MBPP数据集不存在: {mbpp_path}"
+            return False, f"数据集不存在: {mbpp_path}"
         
         instructions = []
         with open(mbpp_path, 'r', encoding='utf-8') as f:
@@ -396,7 +396,7 @@ def generate_mbpp_training_data(mbpp_path: str, output_path: str, max_items: int
                             "index": i,
                             "timestamp": datetime.now().isoformat(),
                             "validation_result": validation_msg,
-                            "source": "mbpp_dataset_generated"
+                            "source": "dataset_generated"
                         }
                     }
                     successful_pairs.append(training_pair)
@@ -536,11 +536,11 @@ def generate_code_with_local_model(instruction: str, config: Dict) -> Tuple[str,
 
 def save_instruction_to_mbpp(instruction: str, mbpp_path: str = None):
     """
-    将指令保存到MBPP数据集（添加引号确保格式统一）
+    将指令保存到数据集（添加引号确保格式统一）
     """
     try:
         if mbpp_path is None:
-            mbpp_path = DEFAULT_CONFIG["mbpp_dataset_path"]
+            mbpp_path = DEFAULT_CONFIG["dataset_path"]
         
         # 确保目录存在
         os.makedirs(os.path.dirname(mbpp_path), exist_ok=True)
@@ -558,7 +558,7 @@ def save_instruction_to_mbpp(instruction: str, mbpp_path: str = None):
         with open(mbpp_path, 'a', encoding='utf-8') as f:
             f.write(cleaned_instruction + '\n')
         
-        log(f" 指令已保存到MBPP数据集: {cleaned_instruction[:100]}...")
+        log(f" 指令已保存到数据集: {cleaned_instruction[:100]}...")
         return True, f"指令已保存到 {mbpp_path}"
         
     except Exception as e:
@@ -580,12 +580,12 @@ def process_instruction_with_local_model(instruction: str, temperature: float, t
     if instruction.lower() == "自我演化":
         log("检测到'自我演化'指令，开始微调流程...")
         
-        # 检查MBPP数据集是否存在
+        # 检查数据集是否存在
         if mbpp_path is None:
-            mbpp_path = DEFAULT_CONFIG["mbpp_dataset_path"]
+            mbpp_path = DEFAULT_CONFIG["dataset_path"]
         
         if not os.path.exists(mbpp_path):
-            error_msg = f" MBPP数据集不存在: {mbpp_path}"
+            error_msg = f" 数据集不存在: {mbpp_path}"
             log(error_msg)
             return error_msg, "", ""
         
@@ -597,11 +597,11 @@ def process_instruction_with_local_model(instruction: str, temperature: float, t
             lines = 0
         
         if lines == 0:
-            error_msg = f" MBPP数据集为空: {mbpp_path}"
+            error_msg = f" 数据集为空: {mbpp_path}"
             log(error_msg)
             return error_msg, "", ""
         
-        log(f"MBPP数据集包含 {lines} 条指令")
+        log(f"数据集包含 {lines} 条指令")
         
         # 开始微调
         if is_training:
@@ -610,7 +610,7 @@ def process_instruction_with_local_model(instruction: str, temperature: float, t
         # 准备训练配置
         train_config = {
             "model_path": DEFAULT_CONFIG["model_path"],
-            "mbpp_dataset_path": mbpp_path,
+            "dataset_path": mbpp_path,
             "output_dir": DEFAULT_CONFIG["output_dir"],
             "num_epochs": DEFAULT_CONFIG["num_epochs"],
             "learning_rate": DEFAULT_CONFIG["learning_rate"],
@@ -650,11 +650,11 @@ def process_instruction_with_local_model(instruction: str, temperature: float, t
         # 生成代码
         status, code = generate_code_with_local_model(instruction, config)
         
-        # 保存指令到MBPP数据集（带引号）
+        # 保存指令到数据集（带引号）
         save_success, save_msg = save_instruction_to_mbpp(instruction, mbpp_path)
         
         if save_success:
-            save_status = f" 指令已保存到MBPP数据集"
+            save_status = f" 指令已保存到数据集"
         else:
             save_status = f" 保存指令失败: {save_msg}"
         
@@ -715,7 +715,7 @@ Tokenizer: 已加载
         log(error_msg)
         return error_msg, False
 
-# ====== 模型训练模块（修改版，使用MBPP数据生成） ======
+# ====== 模型训练模块 ======
 class TrainingThread(threading.Thread):
     """训练线程"""
     def __init__(self, config, callback=None):
@@ -737,14 +737,14 @@ class TrainingThread(threading.Thread):
             self.log("=" * 60)
             
             # 检查是否需要生成训练数据
-            mbpp_path = self.config.get('mbpp_dataset_path', DEFAULT_CONFIG["mbpp_dataset_path"])
+            mbpp_path = self.config.get('dataset_path', DEFAULT_CONFIG["dataset_path"])
             training_data_path = self.config.get('training_dataset_path', DEFAULT_CONFIG["training_dataset_path"])
             max_generate_items = self.config.get('max_generate_items', DEFAULT_CONFIG["max_generate_items"])
             
             # 如果训练数据不存在或需要重新生成
             if not os.path.exists(training_data_path):
                 self.log(f"训练数据不存在，开始生成...")
-                self.log(f"MBPP数据集: {mbpp_path}")
+                self.log(f"数据集: {mbpp_path}")
                 self.log(f"输出路径: {training_data_path}")
                 self.log(f"最大生成数量: {max_generate_items}")
                 
@@ -768,7 +768,7 @@ class TrainingThread(threading.Thread):
             
             # 步骤2: 加载模型进行微调
             self.log("=" * 60)
-            self.log("第二步: 开始模型微调")
+            self.log("第二步: 开始模型演进")
             self.log("=" * 60)
             
             self.log("开始导入训练库...")
@@ -964,15 +964,15 @@ def start_training_interface(config_data):
     config.update(config_data)
     
     # 检查必要参数
-    required_fields = ["model_path", "mbpp_dataset_path", "output_dir"]
+    required_fields = ["model_path", "dataset_path", "output_dir"]
     for field in required_fields:
         if not config.get(field):
             return f" 请填写{field}", False
     
-    # 检查MBPP数据集
-    mbpp_path = config.get("mbpp_dataset_path", DEFAULT_CONFIG["mbpp_dataset_path"])
+    # 检查数据集
+    mbpp_path = config.get("dataset_path", DEFAULT_CONFIG["dataset_path"])
     if not os.path.exists(mbpp_path):
-        return f" MBPP数据集不存在: {mbpp_path}", False
+        return f" 数据集不存在: {mbpp_path}", False
     
     # 创建输出目录
     os.makedirs(config["output_dir"], exist_ok=True)
@@ -983,14 +983,14 @@ def start_training_interface(config_data):
     training_thread.start()
     
     start_msg = f"""
- 开始模型微调任务...
+ 开始模型演进任务...
 
 第一阶段: 生成训练数据
-- MBPP数据集: {config.get('mbpp_dataset_path', DEFAULT_CONFIG["mbpp_dataset_path"])}
+- 数据集: {config.get('dataset_path', DEFAULT_CONFIG["dataset_path"])}
 - 最大生成数量: {config.get('max_generate_items', DEFAULT_CONFIG["max_generate_items"])}
 - 输出路径: {config.get('training_dataset_path', DEFAULT_CONFIG["training_dataset_path"])}
 
-第二阶段: 模型微调
+第二阶段: 模型演进
 - 模型: {config['model_path']}
 - 输出目录: {config['output_dir']}
 - 训练轮数: {config['num_epochs']}
@@ -1730,15 +1730,15 @@ with gr.Blocks(title="Qwen2.5-Coder 完整系统", theme=gr.themes.Soft()) as de
                         - 确保模型文件完整
                         """)
         
-        # ====== Tab 2: 模型微调（已修改为使用MBPP） ======
-        with gr.TabItem(" 模型微调"):
+        # ====== Tab 2: 模型演进 ======
+        with gr.TabItem(" 模型演进"):
             with gr.Row():
                 with gr.Column(scale=1):
                     gr.Markdown("###  训练配置")
                     
-                    mbpp_dataset_path = gr.Textbox(
-                        label="MBPP数据集路径",
-                        value=DEFAULT_CONFIG["mbpp_dataset_path"],
+                    dataset_path = gr.Textbox(
+                        label="数据集路径",
+                        value=DEFAULT_CONFIG["dataset_path"],
                         placeholder="mbpp_text_only.jsonl 路径",
                         lines=1
                     )
@@ -1810,8 +1810,8 @@ with gr.Blocks(title="Qwen2.5-Coder 完整系统", theme=gr.themes.Soft()) as de
                     gr.Markdown("---")
                     gr.Markdown("###  工具")
                     
-                    with gr.Accordion("检查MBPP数据集", open=False):
-                        check_mbpp_btn = gr.Button("检查MBPP数据集", variant="secondary")
+                    with gr.Accordion("检查数据集", open=False):
+                        check_mbpp_btn = gr.Button("检查数据集", variant="secondary")
                         check_mbpp_output = gr.Textbox(label="检查结果", interactive=False, lines=3)
                     
                     with gr.Accordion("生成示例数据集", open=False):
@@ -1829,9 +1829,9 @@ with gr.Blocks(title="Qwen2.5-Coder 完整系统", theme=gr.themes.Soft()) as de
                     
                     with gr.Accordion("详细说明", open=True):
                         gr.Markdown("""
-                        ### 新的训练流程（使用MBPP数据集）：
+                        ### 新的训练流程（使用数据集）：
                         
-                        1. **准备MBPP数据集**
+                        1. **准备数据集**
                            - 数据集应为 mbpp_text_only.jsonl 格式
                            - 每行是一个指令字符串，用双引号包裹
                            - 示例: `"Write a function to find the minimum cost path..."`
@@ -1842,7 +1842,7 @@ with gr.Blocks(title="Qwen2.5-Coder 完整系统", theme=gr.themes.Soft()) as de
                            - 进行语法检查和基本测试
                            - 只有通过验证的指令-代码对才会被保留
                         
-                        3. **第二阶段：模型微调**
+                        3. **第二阶段：模型演进**
                            - 使用生成的高质量数据进行微调
                            - 支持LoRA和4-bit量化以节省显存
                            - 训练完成后自动保存模型
@@ -2090,7 +2090,7 @@ with gr.Blocks(title="Qwen2.5-Coder 完整系统", theme=gr.themes.Soft()) as de
                            - 输入编程相关的指令（英文/中文均可）
                            - 点击"开始"按钮生成代码
                            - 生成的代码会显示在右侧
-                           - 指令会自动保存到MBPP数据集中
+                           - 指令会自动保存到数据集中
                         
                         2. **特殊功能：自我演化**：
                            - 输入"自我演化"（不带引号）
@@ -2104,7 +2104,7 @@ with gr.Blocks(title="Qwen2.5-Coder 完整系统", theme=gr.themes.Soft()) as de
                            - **最大生成token数**：限制生成代码的长度
                         
                         4. **指令保存**：
-                           - 每次成功问答后，指令会自动保存到MBPP数据集
+                           - 每次成功问答后，指令会自动保存到数据集
                            - 保存格式：用双引号包裹的字符串
                            - 文件路径：`./datasets/mbpp_text_only.jsonl`
                         
@@ -2148,9 +2148,9 @@ with gr.Blocks(title="Qwen2.5-Coder 完整系统", theme=gr.themes.Soft()) as de
         outputs=[gpu_info, model_info]
     )
     
-    # Tab 2: 模型微调
+    # Tab 2: 模型演进
     def collect_training_config(
-        mbpp_dataset_path_val, output_dir_val, 
+        dataset_path_val, output_dir_val, 
         num_epochs_val, learning_rate_val,
         batch_size_val, max_generate_items_val, use_lora_val, use_4bit_val
     ):
@@ -2159,7 +2159,7 @@ with gr.Blocks(title="Qwen2.5-Coder 完整系统", theme=gr.themes.Soft()) as de
         
         config = {
             "model_path": model_path_val,
-            "mbpp_dataset_path": mbpp_dataset_path_val,
+            "dataset_path": dataset_path_val,
             "output_dir": output_dir_val,
             "num_epochs": int(num_epochs_val),
             "learning_rate": float(learning_rate_val),
@@ -2173,7 +2173,7 @@ with gr.Blocks(title="Qwen2.5-Coder 完整系统", theme=gr.themes.Soft()) as de
     train_btn.click(
         fn=collect_training_config,
         inputs=[
-            mbpp_dataset_path, output_dir,
+            dataset_path, output_dir,
             num_epochs, learning_rate,
             batch_size, max_generate_items, use_lora, use_4bit
         ],
@@ -2184,10 +2184,10 @@ with gr.Blocks(title="Qwen2.5-Coder 完整系统", theme=gr.themes.Soft()) as de
         outputs=[train_status, status_display]
     )
     
-    # 检查MBPP数据集
-    def check_mbpp_dataset(mbpp_path):
+    # 检查数据集
+    def check_dataset(mbpp_path):
         if not os.path.exists(mbpp_path):
-            return f" MBPP数据集不存在: {mbpp_path}"
+            return f" 数据集不存在: {mbpp_path}"
         
         # 读取样本数量
         try:
@@ -2202,13 +2202,13 @@ with gr.Blocks(title="Qwen2.5-Coder 完整系统", theme=gr.themes.Soft()) as de
                 first_line = f.readline().strip()
                 example = first_line[:100] + "..." if len(first_line) > 100 else first_line
             
-            return f" MBPP数据集检查通过\n样本数量: {count}\n示例: {example}"
+            return f" 数据集检查通过\n样本数量: {count}\n示例: {example}"
         except Exception as e:
-            return f" 读取MBPP数据集失败: {str(e)}"
+            return f" 读取数据集失败: {str(e)}"
     
     check_mbpp_btn.click(
-        fn=check_mbpp_dataset,
-        inputs=mbpp_dataset_path,
+        fn=check_dataset,
+        inputs=dataset_path,
         outputs=check_mbpp_output
     )
     
@@ -2283,7 +2283,7 @@ with gr.Blocks(title="Qwen2.5-Coder 完整系统", theme=gr.themes.Soft()) as de
             temperature,
             top_p,
             max_new_tokens,
-            mbpp_path=DEFAULT_CONFIG["mbpp_dataset_path"]
+            mbpp_path=DEFAULT_CONFIG["dataset_path"]
         )
         
         return qa_status, code, save_status, "处理完成"
@@ -2384,16 +2384,16 @@ if __name__ == "__main__":
     os.makedirs("./datasets", exist_ok=True)
     os.makedirs("./mbpp_training_data", exist_ok=True)
     
-    # 检查MBPP数据集
-    mbpp_path = DEFAULT_CONFIG["mbpp_dataset_path"]
+    # 检查数据集
+    mbpp_path = DEFAULT_CONFIG["dataset_path"]
     if not os.path.exists(mbpp_path):
-        print(f" 警告: MBPP数据集不存在: {mbpp_path}")
-        print("将创建新的MBPP数据集文件")
+        print(f" 警告: 数据集不存在: {mbpp_path}")
+        print("将创建新的数据集文件")
         with open(mbpp_path, 'w', encoding='utf-8') as f:
             f.write('"Write a function to add two numbers and return the sum"\n')
             f.write('"Write a function to check if a number is prime"\n')
             f.write('"Write a function to generate the first n Fibonacci numbers"\n')
-        print(f" 已创建示例MBPP数据集: {mbpp_path}")
+        print(f" 已创建示例数据集: {mbpp_path}")
     
     # 检查HumanEval数据集
     if not os.path.exists(DEFAULT_CONFIG["human_eval_path"]):

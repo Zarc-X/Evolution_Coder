@@ -117,7 +117,7 @@ def generate_code_with_local_model(instruction: str, config: Dict) -> Tuple[str,
 
 def save_instruction_to_mbpp(instruction: str, mbpp_path: str = None):
     """
-    将指令保存到MBPP数据集（添加引号确保格式统一）
+    将指令保存（添加引号确保格式统一）
     """
     try:
         if mbpp_path is None:
@@ -139,7 +139,7 @@ def save_instruction_to_mbpp(instruction: str, mbpp_path: str = None):
         with open(mbpp_path, 'a', encoding='utf-8') as f:
             f.write(cleaned_instruction + '\n')
         
-        log(f"✅ 指令已保存到MBPP数据集: {cleaned_instruction[:100]}...")
+        log(f"✅ 指令已保存到数据集: {cleaned_instruction[:100]}...")
         return True, f"指令已保存到 {mbpp_path}"
         
     except Exception as e:
@@ -206,11 +206,11 @@ def process_instruction_with_local_model(instruction: str, temperature: float, t
         
         status, code = generate_code_with_local_model(instruction, config)
         
-        # 保存指令到MBPP数据集（带引号）
+        # 保存指令（带引号）
         save_success, save_msg = save_instruction_to_mbpp(instruction, mbpp_path)
         
         if save_success:
-            save_status = f"✅ 指令已保存到MBPP数据集"
+            save_status = f"✅ 指令已保存到数据集"
         else:
             save_status = f"⚠️ 保存指令失败: {save_msg}"
         
