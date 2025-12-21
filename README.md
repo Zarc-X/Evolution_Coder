@@ -282,6 +282,10 @@ pip install -r requirements.txt
 - 确保模型文件完整
 - 查看日志输出获取详细错误信息
 
+### 模型测试准确率异常
+- 检查测试数据集datasets\human-eval-v2-20210705.jsonl是否正确
+- 从main.py退出，运行位于根目录的code.py
+
 ##  后续改进方向
 
 - [ ] 添加单元测试框架
