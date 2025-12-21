@@ -53,13 +53,13 @@ API_CONFIG = {
 DEFAULT_CONFIG = {
     # 模型配置
     "model_path": "./models/Qwen2.5-Coder-0.5B-Instruct",
-    "finetuned_model_path": "./qwen2.5-coder-0.5b-finetuned",
+    "finetuned_model_path": "./models/qwen2.5-coder-0.5b-finetuned",
     "human_eval_path": "./datasets/human-eval-v2-20210705.jsonl",
     
     # 训练配置
     "dataset_path": "./datasets/mbpp_text_only.jsonl",  # 原始数据集路径
     "training_dataset_path": "./mbpp_training_data/mbpp_training_dataset.jsonl",  # 处理后训练集路径
-    "output_dir": "./qwen2.5-coder-0.5b-finetuned",
+    "output_dir": "./models/qwen2.5-coder-0.5b-finetuned",
     "num_epochs": 3,
     "learning_rate": 2e-4,
     "batch_size": 4,

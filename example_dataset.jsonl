@@ -1,0 +1,2 @@
+{"instruction": "Write a function to add two numbers", "code": "def add_numbers(a, b):\n    \"\"\"Add two numbers\"\"\"\n    return a + b"}
+{"instruction": "Write a function to check if a number is prime", "code": "def is_prime(n):\n    \"\"\"Check if a number is prime\"\"\"\n    if n <= 1:\n        return False\n    for i in range(2, int(n**0.5) + 1):\n        if n % i == 0:\n            return False\n    return True"}

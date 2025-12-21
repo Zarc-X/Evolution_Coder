@@ -152,7 +152,7 @@ def process_instruction_with_local_model(instruction: str, temperature: float, t
     """
     处理用户指令：如果是"自我演化"则开始微调，否则生成代码并保存指令
     """
-    from ..training.trainer import is_training, start_training_interface
+    from ..training import trainer as trainer_module
     
     # 清理指令
     instruction = instruction.strip()
@@ -182,7 +182,7 @@ def process_instruction_with_local_model(instruction: str, temperature: float, t
             log(error_msg)
             return error_msg, "", ""
         
-        if is_training:
+        if getattr(trainer_module, 'is_training', False):
             return "⚠️ 正在训练中，请稍候...", "", ""
         
         # 开始训练
@@ -193,7 +193,18 @@ def process_instruction_with_local_model(instruction: str, temperature: float, t
             "mbpp_dataset_path": mbpp_path
         }
         
-        start_training_interface(config)
+        # 启动训练并检查启动结果
+        try:
+            start_msg, started = trainer_module.start_training_interface(config)
+        except Exception as e:
+            log(f"❌ 启动训练时异常: {str(e)}")
+            return f"❌ 启动训练失败: {str(e)}", "", ""
+
+        if not started:
+            # start_training_interface 返回了失败信息
+            log(f"训练未启动: {start_msg}")
+            return f"❌ 训练未启动: {start_msg}", "", ""
+
         return "✅ 已启动微调进程", "", "微调已启动"
     
     else:
